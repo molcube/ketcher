@@ -31,7 +31,8 @@ import { runAsyncAction } from 'utilities'
 
 const allowedApiSettings = {
   'general.dearomatize-on-load': 'dearomatize-on-load',
-  ignoreChiralFlag: 'ignoreChiralFlag'
+  ignoreChiralFlag: 'ignoreChiralFlag',
+  showHydrogenLabels: 'showHydrogenLabels'
 }
 
 async function prepareStructToRender(
@@ -115,6 +116,7 @@ export class Ketcher {
   // TEMP.: getting only dearomatize-on-load setting
   get settings() {
     const options = this.#editor.options()
+    console.log(options)
     const result = Object.entries(allowedApiSettings).reduce(
       (acc, [apiSetting, clientSetting]) => {
         if (clientSetting in options) {
