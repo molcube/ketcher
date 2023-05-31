@@ -35,10 +35,33 @@
       user's mobile device or desktop. See https://developers.google.com/web/fundamentals/web-app-manifest/
     -->
     <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
+    <script src="%PUBLIC_URL%/ketcherAPI.js"></script>
     <title>Ketcher @@version</title>
   </head>
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>
-    <div id="root"></div>
+    <div id="ketcher-app"></div>
+    <input type="file" id="file-input">
+    <script>
+      const showHydrogenLabels = async () => {
+        await ketcher.setSettings({ showHydrogenLabels: 'on' })
+      }
+
+      async function init() {
+        await ketcher.layout()
+        await KetcherFunctions.showProteinChain({atoms:[0,1]})
+      }
+
+      document.querySelector('#file-input').addEventListener('change', async function (e) {
+        var file = e.target.files[0]
+        if (!file) return
+      
+        const sdf = await file.text()
+        await ketcher.setMolecule(sdf)
+        await init()
+      })
+
+      showHydrogenLabels()      
+    </script>
   </body>
 </html>

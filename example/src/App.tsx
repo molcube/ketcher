@@ -1,14 +1,12 @@
 import 'ketcher-react/dist/index.css'
 
 import { ButtonsConfig, Editor } from 'ketcher-react'
-import {
-  Ketcher,
-  RemoteStructServiceProvider,
-  StructServiceProvider
-} from 'ketcher-core'
+import { Ketcher, StructServiceProvider } from 'ketcher-core'
+
 import { ErrorModal } from './ErrorModal'
-import { PolymerToggler } from './PolymerToggler'
 import { useState } from 'react'
+
+type Acc = { [key: string]: { hidden: boolean } }
 
 const getHiddenButtonsConfig = (): ButtonsConfig => {
   const searchParams = new URLSearchParams(window.location.search)
@@ -16,58 +14,37 @@ const getHiddenButtonsConfig = (): ButtonsConfig => {
 
   if (!hiddenButtons) return {}
 
-  return hiddenButtons.split(',').reduce((acc, button) => {
+  return hiddenButtons.split(',').reduce((acc: Acc, button) => {
     if (button) acc[button] = { hidden: true }
 
     return acc
   }, {})
 }
 
-let structServiceProvider: StructServiceProvider =
-  new RemoteStructServiceProvider(
-    process.env.API_PATH || process.env.REACT_APP_API_PATH!
-  )
-if (process.env.MODE === 'standalone') {
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  const { StandaloneStructServiceProvider } = require('ketcher-standalone')
-  structServiceProvider =
-    new StandaloneStructServiceProvider() as StructServiceProvider
-}
-
-const enablePolymerEditor = process.env.ENABLE_POLYMER_EDITOR === 'true'
-
-type PolymerType = () => JSX.Element | null
-
-let PolymerEditor: PolymerType = () => null
-if (enablePolymerEditor) {
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  const { Editor } = require('ketcher-polymer-editor-react')
-  PolymerEditor = Editor as PolymerType
-}
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const { StandaloneStructServiceProvider } = require('ketcher-standalone')
+const structServiceProvider =
+  new StandaloneStructServiceProvider() as StructServiceProvider
 
 const App = () => {
   const hiddenButtonsConfig = getHiddenButtonsConfig()
   const [hasError, setHasError] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
-  const [showPolymerEditor, setShowPolymerEditor] = useState(false)
 
-  return showPolymerEditor ? (
-    <>
-      <PolymerEditor />
-      <PolymerToggler toggle={setShowPolymerEditor} />
-    </>
-  ) : (
-    <>
+  return (
+    <div className="ketcher-container">
       <Editor
         errorHandler={(message: string) => {
           setHasError(true)
           setErrorMessage(message.toString())
         }}
         buttons={hiddenButtonsConfig}
-        staticResourcesUrl={process.env.PUBLIC_URL!}
+        staticResourcesUrl={''}
         structServiceProvider={structServiceProvider}
         onInit={(ketcher: Ketcher) => {
-          ;(global as any).ketcher = ketcher
+          ;(global as typeof globalThis & { ketcher: Ketcher }).ketcher =
+            ketcher
+          ;(global as any).KetcherFunctions = KetcherAPI(ketcher)
           window.parent.postMessage(
             {
               eventType: 'init'
@@ -76,7 +53,6 @@ const App = () => {
           )
         }}
       />
-      {enablePolymerEditor && <PolymerToggler toggle={setShowPolymerEditor} />}
       {hasError && (
         <ErrorModal
           message={errorMessage}
@@ -84,12 +60,13 @@ const App = () => {
             setHasError(false)
 
             // Focus on editor after modal is closed
-            const cliparea: HTMLElement = document.querySelector('.cliparea')!
+            const cliparea: HTMLElement | null =
+              document.querySelector('.cliparea') || null
             cliparea?.focus()
           }}
         />
       )}
-    </>
+    </div>
   )
 }
 

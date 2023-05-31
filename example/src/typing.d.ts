@@ -11,3 +11,17 @@ declare global {
     ): void
   }
 }
+
+declare const KetcherAPI: (ketcher: Ketcher) => {
+  highlightSelection(color: string): {
+    lastHighlightID: number
+    lastHighlight: any
+  }
+  selectElementsById({
+    atoms,
+    bonds
+  }: {
+    atoms: number[]
+    bonds: number[]
+  }): void
+}
