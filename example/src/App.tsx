@@ -2,19 +2,12 @@ import 'ketcher-react/dist/index.css'
 
 import { ButtonsConfig, Editor } from 'ketcher-react'
 import { Ketcher, StructServiceProvider } from 'ketcher-core'
-
+import { initiallyHidden } from './constants/buttons'
 import { ErrorModal } from './ErrorModal'
 import { useState } from 'react'
 
-type Acc = { [key: string]: { hidden: boolean } }
-
-const getHiddenButtonsConfig = (): ButtonsConfig => {
-  const searchParams = new URLSearchParams(window.location.search)
-  const hiddenButtons = searchParams.get('hiddenControls')
-
-  if (!hiddenButtons) return {}
-
-  return hiddenButtons.split(',').reduce((acc: Acc, button) => {
+const getHiddenButtonsConfig = (btnArr: string[]): ButtonsConfig => {
+  return btnArr.reduce((acc, button) => {
     if (button) acc[button] = { hidden: true }
 
     return acc
@@ -27,7 +20,6 @@ const structServiceProvider =
   new StandaloneStructServiceProvider() as StructServiceProvider
 
 const App = () => {
-  const hiddenButtonsConfig = getHiddenButtonsConfig()
   const [hasError, setHasError] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
 
@@ -38,13 +30,12 @@ const App = () => {
           setHasError(true)
           setErrorMessage(message.toString())
         }}
-        buttons={hiddenButtonsConfig}
+        buttons={getHiddenButtonsConfig(initiallyHidden)}
         staticResourcesUrl={''}
         structServiceProvider={structServiceProvider}
         onInit={(ketcher: Ketcher) => {
           ;(global as typeof globalThis & { ketcher: Ketcher }).ketcher =
             ketcher
-          ;(global as any).KetcherFunctions = KetcherAPI(ketcher)
           window.parent.postMessage(
             {
               eventType: 'init'

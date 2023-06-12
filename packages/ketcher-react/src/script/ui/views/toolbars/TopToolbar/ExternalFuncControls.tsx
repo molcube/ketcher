@@ -114,7 +114,9 @@ export const ExternalFuncControls = ({
   if (isCollapsed) {
     return (
       <ElementWithDropdown
-        topElement={getButtonElement(firstButtonObj)}
+        topElement={
+          firstButtonObj ? getButtonElement(firstButtonObj) : undefined
+        }
         dropDownElements={collapsibleElements}
       />
     )

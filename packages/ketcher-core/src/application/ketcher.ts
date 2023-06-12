@@ -270,6 +270,20 @@ export class Ketcher {
     }, this.eventBus)
   }
 
+  async set2DMolecule(structStr: string): Promise<void> {
+    await runAsyncAction<void>(async () => {
+      assert(typeof structStr === 'string')
+
+      const _struct: Struct = await prepareStructToRender(
+        structStr,
+        this.#structService,
+        this
+      )
+      const struct = await this.#indigo.layout(_struct)
+      this.#editor.struct(struct)
+    }, this.eventBus)
+  }
+
   async addFragment(structStr: string): Promise<void> {
     runAsyncAction<void>(async () => {
       assert(typeof structStr === 'string')
@@ -294,6 +308,14 @@ export class Ketcher {
 
   recognize(image: Blob, version?: string): Promise<Struct> {
     return this.#indigo.recognize(image, { version: version })
+  }
+
+  async highlightAtomsById(atoms: number[], color: string): Promise<void> {
+    await runAsyncAction<void>(async () => {
+      assert(Array.isArray(atoms))
+      assert(typeof color === 'string')
+      ;(this.#editor as any).highlights.create({ atoms, color })
+    }, this.eventBus)
   }
 
   async generateImage(
